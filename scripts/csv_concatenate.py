@@ -28,46 +28,101 @@ def generate_csv():
 
     # Wrangling the DATA variable
     print("\nRemoving rows where the 'DATA' column is null:")
-    total_rows_before = len(df)
-    df_1 = df.dropna(subset=['DATA'])
-    total_rows_after = len(df_1)
-    removed_rows = total_rows_before - total_rows_after
-    removed_rows_percentage = (removed_rows / total_rows_before) * 100
-    print(f"Removed {removed_rows} rows, comprising {removed_rows_percentage:.2f}% of the total.")
+    df.dropna(subset=['DATA'], inplace = True) 
+    print(f"Dataframe now contains {len(df)} rows.")
 
     # Converting the 'DATA' column to datetime with the correct format 'day/month/year'
     try:
-        df_1.loc[:, 'DATA'] = pd.to_datetime(df_1['DATA'], format='%d/%m/%Y', errors='coerce')
+        df['DATA'] = pd.to_datetime(df['DATA'], format='%d/%m/%Y', errors='coerce')
+        df.dropna(subset=['DATA'], inplace=True)  # Removing rows with NaT values after conversion
     except ValueError as e:
         print(f"Error converting 'DATA' column to datetime: {e}")
 
     # Handling NaT values
-    num_errors = df_1['DATA'].isna().sum()
-    print(f"Number of rows with errors after conversion: {num_errors}")
-
-    # Removing rows with NaT values in the 'DATA' column
-    df_2 = df_1.dropna(subset=['DATA'])
+    print(f"Number of rows with errors after conversion: {df['DATA'].isna().sum()}")
 
     # Modifying 'VALOR_REEMBOLSADO' column
     print("\nModifying 'VALOR_REEMBOLSADO' column:")
-    df_2.loc[:, 'VALOR_REEMBOLSADO'] = df_2['VALOR_REEMBOLSADO'].str.replace('\r\n', '').str.replace(',', '.')
-    df_2.loc[:, 'VALOR_REEMBOLSADO'] = df_2['VALOR_REEMBOLSADO'].astype(float)
+    df['VALOR_REEMBOLSADO'] = df['VALOR_REEMBOLSADO'].str.replace('\r\n', '').str.replace(',', '.')
+    df['VALOR_REEMBOLSADO'] = df['VALOR_REEMBOLSADO'].astype(float)
 
     # Resetting Index
-    df_3 = df_2.reset_index(drop=True)
+    df = df.reset_index(drop=True)
 
-    # Function to normalize names
-    def normalize_name(name):
-        return unidecode(name)
+    # Correct names function
+    def correct_names_in_dataframe(df, column_name):
+        corrections = {
+            'A�CIO NEVES': 'AÉCIO NEVES',
+            'ANA AM�LIA': 'ANA AMÉLIA',
+            '�NGELA PORTELA': 'ÂNGELA PORTELA',
+            'AN�BAL DINIZ': 'ANÍBAL DINIZ',
+            'ANT�NIO CARLOS VALADARES': 'ANTÔNIO CARLOS VALADARES',
+            'ATA�DES OLIVEIRA': 'ATAÍDES OLIVEIRA',
+            'C�SSIO CUNHA LIMA': 'CÁSSIO CUNHA LIMA',
+            'C�CERO LUCENA': 'CÍCERO LUCENA',
+            'D�RIO BERGER': 'DÁRIO BERGER',
+            'EDISON LOB�O': 'EDISON LOBÃO',
+            'ELMANO F�RRER': 'ELMANO FÉRRER',
+            'EPIT�CIO CAFETEIRA': 'EPITÁCIO CAFETEIRA',
+            'F�TIMA BEZERRA': 'FÁTIMA BEZERRA',
+            'H�LIO JOS�': 'HÉLIO JOSÉ',
+            'IN�CIO ARRUDA': 'INÁCIO ARRUDA',
+            'JO�O ALBERTO SOUZA': 'JOÃO ALBERTO SOUZA',
+            'JO�O CAPIBERIBE': 'JOÃO CAPIBERIBE',
+            'JO�O DURVAL': 'JOÃO DURVAL',
+            'JO�O VICENTE CLAUDINO': 'JOÃO VICENTE CLAUDINO',
+            'JOS� AGRIPINO': 'JOSÉ AGRIPINO',
+            'JOS� MARANH�O': 'JOSÉ MARANHÃO',
+            'JOS� MEDEIROS': 'JOSÉ MEDEIROS',
+            'JOS� PIMENTEL': 'JOSÉ PIMENTEL',
+            'JOS� SERRA': 'JOSÉ SERRA',
+            'L�DICE DA MATA': 'LÍDICE DA MATA',
+            'L�CIA V�NIA': 'LÚCIA VÂNIA',
+            'MARCO ANT�NIO COSTA': 'MARCO ANTÔNIO COSTA',
+            'M�RIO COUTO': 'MÁRIO COUTO',
+            'RICARDO FERRA�O': 'RICARDO FERRAÇO',
+            'ROBERTO REQUI�O': 'ROBERTO REQUIÃO',
+            'ROM�RIO': 'ROMÁRIO',
+            'ROMERO JUC�': 'ROMERO JUCÁ',
+            'RUBEN FIGUEIR�': 'RUBEN FIGUEIRÓ',
+            'S�RGIO PETEC�O': 'SÉRGIO PETECÃO',
+            'SODR� SANTORO': 'SODRÉ SANTORO',
+            'TELM�RIO MOTA': 'TELMÁRIO MOTA',
+            'ZEZ� PERRELLA': 'ZEZÉ PERRELLA'
+             }
+    
+        df[column_name] = df[column_name].apply(lambda x: corrections.get(x, x))
 
-    # Applying the normalize_name function to the 'SENADOR' column
-    df_3['SENADOR'] = df_3['SENADOR'].apply(normalize_name)
+    #Applying the normalize_name function to the 'SENADOR' column
+    correct_names_in_dataframe(df,'SENADOR')
 
 
-    print(df_3.info())
+    print(df.info())
+
+    # Convert 'Month' and 'Year' columns to strings and concatenate them
+    df['Month-Year'] = df['ANO'].astype(str) + '-' + df['MES'].astype(str)
+
+    # Convert the concatenated string to datetime format
+    df['Month-Year'] = pd.to_datetime(df['Month-Year'], format='%Y-%m')
+
+    def correct_tipo_despesa(df):
+        corrections = {
+            'Aluguel de im�veis para escrit�rio pol�tico, compreendendo despesas concernentes a eles.': 'Aluguel de imóveis para escritório político, compreendendo despesas concernentes a eles.',
+            'Divulga��o da atividade parlamentar': 'Divulgação da atividade parlamentar',
+            'Locomo��o, hospedagem, alimenta��o, combust�veis e lubrificantes': 'Locomoção, hospedagem, alimentação, combustíveis e lubrificantes',
+            'Contrata��o de consultorias, assessorias, pesquisas, trabalhos t�cnicos e outros servi�os de apoio ao exerc�cio do mandato parlamentar': 'Contratação de consultorias, assessorias, pesquisas, trabalhos técnicos e outros serviços de apoio ao exercício do mandato parlamentar',
+            'Aquisi��o de material de consumo para uso no escrit�rio pol�tico, inclusive aquisi��o ou loca��o de software, despesas postais, aquisi��o de publica��es, loca��o de m�veis e de equipamentos. ': 'Aquisição de material de consumo para uso no escritório político, inclusive aquisição ou locação de software, despesas postais, aquisição de publicações, locação de móveis e de equipamentos.',
+            'Passagens a�reas, aqu�ticas e terrestres nacionais': 'Passagens aéreas, aquáticas e terrestres nacionais',
+            'Servi�os de Seguran�a Privada': 'Serviços de Segurança Privada'
+        }
+    
+        df['TIPO_DESPESA'] = df['TIPO_DESPESA'].apply(lambda x: corrections.get(x, x))
+
+    # Call the function to correct the 'TIPO_DESPESA' column
+    correct_tipo_despesa(df)
 
     #Create CSV
-    df_3.to_csv('/home/orlando_linux/alura_challange/csv_gold/csv_info_clean.csv', index=False)
+    df.to_csv('/home/orlando_linux/alura_challange/csv_gold/csv_info_clean.csv', index=False)
 
 
 if __name__ == "__main__":
