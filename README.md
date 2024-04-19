@@ -7,4 +7,4 @@ All environments contain information, sometimes structured, sometimes not. In th
 
 After wrangling the data using a Python script, several questions were formulated to provide an initial direction for the study. The primary objective is to derive insights from the dataset, including identifying the senator with the highest expenditure or the one who has been utilizing public resources for the longest duration.
 
-
+To gain a deeper understanding of the project, you can find an article about it on my LinkedIn profile
