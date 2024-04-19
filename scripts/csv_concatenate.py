@@ -124,7 +124,5 @@ def generate_csv():
     #Create CSV
     df.to_csv('/home/orlando_linux/alura_challange/csv_gold/csv_info_clean.csv', index=False, encoding='utf-8')
 
-
-
 if __name__ == "__main__":
     generate_csv()
