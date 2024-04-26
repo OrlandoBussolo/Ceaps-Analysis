@@ -124,6 +124,7 @@ def generate_csv():
     #To drop all lines that have NaN values in the 'COD_DOCUMENTO' column
     df.dropna(subset=['COD_DOCUMENTO'], inplace=True)
 
+    #Creating CSV aggregated
     df_2 = df_agregado = df.groupby(['Month-Year', 'SENADOR'])['VALOR_REEMBOLSADO'].sum().reset_index()
     df_2['Contagem_Mes'] = df_2.groupby('SENADOR')['Month-Year'].rank(method='dense').astype(int)
     
