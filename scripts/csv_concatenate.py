@@ -121,8 +121,19 @@ def generate_csv():
     # Call the function to correct the 'TIPO_DESPESA' column
     correct_tipo_despesa(df)
 
+    #To drop all lines that have NaN values in the 'COD_DOCUMENTO' column
+    df.dropna(subset=['COD_DOCUMENTO'], inplace=True)
+
+    #Creating CSV aggregated
+    df_2 = df_agregado = df.groupby(['Month-Year', 'SENADOR'])['VALOR_REEMBOLSADO'].sum().reset_index()
+    df_2['Contagem_Mes'] = df_2.groupby('SENADOR')['Month-Year'].rank(method='dense').astype(int)
+    
+
     #Create CSV
     df.to_csv('/home/orlando_linux/alura_challange/csv_gold/csv_info_clean.csv', index=False, encoding='utf-8')
+    df_2.to_csv('/home/orlando_linux/alura_challange/csv_gold/csv_info_clean_agg.csv', index=False, encoding='utf-8')
+
+
 
 if __name__ == "__main__":
     generate_csv()
