@@ -125,8 +125,10 @@ def generate_csv():
     df.dropna(subset=['COD_DOCUMENTO'], inplace=True)
 
     #Creating CSV aggregated
-    df_2 = df_agregado = df.groupby(['Month-Year', 'SENADOR'])['VALOR_REEMBOLSADO'].sum().reset_index()
+    df_2 = df.groupby(['Month-Year', 'SENADOR'])['VALOR_REEMBOLSADO'].sum().reset_index()
     df_2['Contagem_Mes'] = df_2.groupby('SENADOR')['Month-Year'].rank(method='dense').astype(int)
+    df_2['VALOR_REEMBOLSADO'] = df_2['VALOR_REEMBOLSADO'].astype(str).str.replace(',', '.')
+    df_2['VALOR_REEMBOLSADO'] = df_2['VALOR_REEMBOLSADO'].astype(float)
     
 
     #Create CSV
